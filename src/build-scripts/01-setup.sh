@@ -71,13 +71,8 @@ apt install -y \
     apt-transport-https \
     ca-certificates \
     debootstrap \
-    grml-debootstrap \
-    live-build \
-    live-tools \
     squashfs-tools \
     xorriso \
-    isolinux \
-    syslinux \
     dosfstools \
     parted \
     gdisk \
@@ -102,14 +97,8 @@ apt update
 
 echo ""
 log_info "Step 4: Installing Kicksecure packages..."
-apt update
-apt install -y \
-    kicksecure-packages \
-    security-misc \
-    apparmor-profiles \
-    apparmor-utils \
-    apparmor-notify \
-    2>/dev/null || log_warn "Some Kicksecure packages may not be available"
+apt update || true
+apt install -y kicksecure-packages security-misc 2>/dev/null || log_warn "Kicksecure packages not available - continuing without them"
 
 echo ""
 log_info "Step 5: Configuring US English locale..."
