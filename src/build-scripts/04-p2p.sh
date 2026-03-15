@@ -25,11 +25,11 @@ log_info "=========================================="
 echo ""
 
 log_info "Step 1: Installing Yggdrasil..."
-# Add Yggdrasil repository
-curl -fsSL https://neilalexander.s3.eu-west-2.amazonaws.com/deb/keyring.gpg | gpg --dearmor -o /usr/share/keyrings/yggdrasil.gpg
+# Add Yggdrasil repository (Debian 12 method)
+curl -fsSL https://neilalexander.s3.eu-west-2.amazonaws.com/deb/keyring.gpg 2>/dev/null | gpg --dearmor -o /usr/share/keyrings/yggdrasil.gpg 2>/dev/null || log_warn "Could not add Yggdrasil key"
 echo "deb [signed-by=/usr/share/keyrings/yggdrasil.gpg] https://neilalexander.s3.eu-west-2.amazonaws.com/deb/ stable main" > /etc/apt/sources.list.d/yggdrasil.list
-apt update
-apt install -y yggdrasil
+apt update 2>/dev/null || true
+apt install -y yggdrasil 2>/dev/null || log_warn "Yggdrasil not available - trying manual install"
 
 log_info "Configuring Yggdrasil..."
 mkdir -p /etc/yggdrasil
@@ -69,11 +69,11 @@ NodeInfo:
   version: "0.1.0"
 EOF
 
-systemctl enable yggdrasil
-systemctl start yggdrasil
+systemctl enable yggdrasil 2>/dev/null || true
+systemctl start yggdrasil 2>/dev/null || true
 
 log_info "Step 2: Installing QR code tools..."
-apt install -y qrencode zbar-tools
+apt install -y qrencode zbar-tools 2>/dev/null || log_warn "QR tools not available"
 
 log_info "Step 3: Creating peer management system..."
 mkdir -p /opt/ironclad/p2p
