@@ -109,17 +109,34 @@ EOF
 systemctl enable prosody 2>/dev/null || true
 systemctl start prosody 2>/dev/null || true
 
-log_info "Step 5: Installing Caddy (Web Server)..."
-# Add Caddy repository (Debian 12 method)
-apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg 2>/dev/null || true
-echo 'deb [signed-by=/usr/share/keyrings/caddy-stable-archive-keyring.gpg] https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' > /etc/apt/sources.list.d/caddy-stable.list
-apt update 2>/dev/null || true
-apt install -y caddy 2>/dev/null || apt install -y nginx 2>/dev/null || log_warn "No web server available"
+log_info "Step 5: Installing Web Server..."
+# Use Nginx - simpler and in Debian main repo
+apt install -y nginx
 
 log_info "Configuring Web Server..."
 mkdir -p /var/www/ironclad
 echo "IronClad Web Server - Welcome!" > /var/www/ironclad/index.html
+chown -R www-data:www-data /var/www/ironclad
+
+# Configure Nginx for .ironclad sites
+cat > /etc/nginx/sites-available/ironclad << 'EOF'
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    
+    server_name _;
+    
+    root /var/www/ironclad;
+    index index.html;
+    
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}
+EOF
+
+ln -sf /etc/nginx/sites-available/ironclad /etc/nginx/sites-enabled/
+nginx -t && systemctl restart nginx
 
 log_info "Step 6: Installing Syncthing..."
 apt install -y syncthing 2>/dev/null || log_warn "Syncthing not available"
