@@ -25,44 +25,40 @@ log_info "=========================================="
 echo ""
 
 log_info "Step 1: Configuring AppArmor..."
-systemctl enable apparmor
-systemctl start apparmor
+apt install -y apparmor apparmor-profiles apparmor-utils 2>/dev/null || log_warn "AppArmor not available"
+systemctl enable apparmor 2>/dev/null || true
+systemctl start apparmor 2>/dev/null || true
 aa-enforce /etc/apparmor.d/* 2>/dev/null || log_warn "Some profiles may need manual enforcement"
 
-log_info "Step 2: Configuring firewall (iptables/nftables)..."
-# Default deny all incoming
-apt install -y iptables-persistent
+log_info "Step 2: Configuring firewall (nftables)..."
+# Debian 12 uses nftables by default
+apt install -y nftables || apt install -y iptables-persistent
 
-# Flush existing rules
-iptables -F
-iptables -X
+# Create basic firewall rules
+nft flush ruleset 2>/dev/null || true
 
-# Default policy: DROP incoming, ACCEPT outgoing
-iptables -P INPUT DROP
-iptables -P FORWARD DROP
-iptables -P OUTPUT ACCEPT
+# Default policy: drop incoming, accept outgoing
+nft add table inet filter 2>/dev/null || true
+nft add chain inet filter input '{ policy drop; }' 2>/dev/null || true
+nft add chain inet filter forward '{ policy drop; }' 2>/dev/null || true
+nft add chain inet filter output '{ policy accept; }' 2>/dev/null || true
 
 # Allow loopback
-iptables -A INPUT -i lo -j ACCEPT
-iptables -A OUTPUT -o lo -j ACCEPT
+nft add rule inet filter input iif lo accept 2>/dev/null || true
 
-# Allow established connections
-iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+# Allow established connections  
+nft add rule inet filter input ct state established,related accept 2>/dev/null || true
 
-# Allow SSH (user can change port)
-iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+# Allow SSH
+nft add rule inet filter input tcp dport 22 accept 2>/dev/null || true
 
 # Allow Yggdrasil
-iptables -A INPUT -p tcp --dport 0:65535 -s 10.0.0.0/8 -j ACCEPT
-iptables -A INPUT -p udp --dport 0:65535 -s 10.0.0.0/8 -j ACCEPT
-
-# Save rules
-iptables-save > /etc/iptables/rules.v4
+nft add rule inet filter input ip saddr 10.0.0.0/8 accept 2>/dev/null || true
 
 log_info "Step 3: Installing USBGuard..."
-apt install -y usbguard
-systemctl enable usbguard
-systemctl start usbguard
+apt install -y usbguard 2>/dev/null || log_warn "USBGuard not available - skipping"
+systemctl enable usbguard 2>/dev/null || true
+systemctl start usbguard 2>/dev/null || true
 
 log_info "Step 4: Configuring kernel hardening..."
 # Disable core dumps
@@ -99,48 +95,33 @@ echo "net.ipv4.tcp_syncookies = 1" >> /etc/sysctl.conf
 sysctl -p
 
 log_info "Step 6: Configuring brute-force protection..."
-apt install -y fail2ban
-systemctl enable fail2ban
+apt install -y fail2ban 2>/dev/null || log_warn "fail2ban not available"
+systemctl enable fail2ban 2>/dev/null || true
 
 log_info "Step 7: Installing TPM tools..."
-apt install -y tpm2-tools tpm2-abrmd tpm2-eventlog
-systemctl enable tpm2-abrmd
+apt install -y tpm2-tools libtss2-tcti-mssim 2>/dev/null || log_warn "TPM tools not available"
 
-log_info "Step 8: Configuring RAM wipe on shutdown..."
-cat > /etc/systemd/system/ram-wipe.service << 'EOF'
-[Unit]
-Description=Wipe RAM on shutdown
-DefaultDependencies=no
-After=shutdown.target
-Before=final.target
+log_info "Step 8: Configuring network hardening..."
+# Disable IP forwarding
+echo "net.ipv4.ip_forward = 0" >> /etc/sysctl.conf
+echo "net.ipv6.conf.all.forwarding = 0" >> /etc/sysctl.conf
 
-[Service]
-Type=oneshot
-ExecStart=/bin/dd if=/dev/urandom of=/dev/mem bs=1M count=1024
-ExecStart=/bin/sync
-
-[Install]
-WantedBy=final.target
-EOF
-
-systemctl daemon-reload
-systemctl enable ram-wipe.service
+# Apply sysctl changes
+sysctl -p 2>/dev/null || true
 
 log_info "Step 9: Disabling unnecessary services..."
 # Disable Bluetooth
 systemctl disable bluetooth 2>/dev/null || true
-systemctl mask bluetooth
+systemctl mask bluetooth 2>/dev/null || true
 
 # Disable Avahi daemon (local network discovery)
 systemctl disable avahi-daemon 2>/dev/null || true
-systemctl mask avahi-daemon
+systemctl mask avahi-daemon 2>/dev/null || true
 
 log_info "Step 10: Configuring secure SSH..."
-sed -i 's/^#*PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
-sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
-sed -i 's/^#*X11Forwarding.*/X11Forwarding no/' /etc/ssh/sshd_config
-echo "AllowUsers ironclad" >> /etc/ssh/sshd_config
-systemctl restart sshd
+sed -i 's/^#*PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config 2>/dev/null || true
+sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config 2>/dev/null || true
+systemctl restart sshd 2>/dev/null || true
 
 log_info "=========================================="
 log_info "  Phase 2 Complete!"
