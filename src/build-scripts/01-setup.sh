@@ -81,10 +81,9 @@ apt install -y \
 
 echo ""
 log_info "Step 3: Setting up Kicksecure repository..."
-# Add Kicksecure repository with proper GPG key
-wget -q https://www.kicksecure.com/keys/derivative.asc -O /tmp/derivative.asc
-apt-key add /tmp/derivative.asc
-echo "deb https://deb.kicksecure.com/ bookworm main" > /etc/apt/sources.list.d/kicksecure.list
+# Add Kicksecure repository with proper GPG key (Debian 12 method)
+wget -q https://www.kicksecure.com/keys/derivative.asc -O- | gpg --dearmor -o /usr/share/keyrings/kicksecure-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/kicksecure-archive-keyring.gpg] https://deb.kicksecure.com/ bookworm main" > /etc/apt/sources.list.d/kicksecure.list
 
 # Add Debian repository (if not present)
 if ! grep -q "deb.debian.org" /etc/apt/sources.list 2>/dev/null; then
