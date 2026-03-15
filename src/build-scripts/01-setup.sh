@@ -70,7 +70,6 @@ apt install -y \
     gnupg2 \
     apt-transport-https \
     ca-certificates \
-    software-properties-common \
     debootstrap \
     grml-debootstrap \
     live-build \
@@ -78,15 +77,18 @@ apt install -y \
     squashfs-tools \
     xorriso \
     isolinux \
-    syslinux-utils \
+    syslinux \
     dosfstools \
     parted \
-    gdisk
+    gdisk \
+    libxml2-utils \
+    xsltproc
 
 echo ""
 log_info "Step 3: Setting up Kicksecure repository..."
-# Add Kicksecure repository
-wget -q https://www.kicksecure.com/keys/derivative.asc -O- | apt-key add -
+# Add Kicksecure repository with proper GPG key
+wget -q https://www.kicksecure.com/keys/derivative.asc -O /tmp/derivative.asc
+apt-key add /tmp/derivative.asc
 echo "deb https://deb.kicksecure.com/ bookworm main" > /etc/apt/sources.list.d/kicksecure.list
 
 # Add Debian repository (if not present)
@@ -100,23 +102,23 @@ apt update
 
 echo ""
 log_info "Step 4: Installing Kicksecure packages..."
+apt update
 apt install -y \
     kicksecure-packages \
     security-misc \
     apparmor-profiles \
     apparmor-utils \
-    apparmor-notify
+    apparmor-notify \
+    2>/dev/null || log_warn "Some Kicksecure packages may not be available"
 
 echo ""
 log_info "Step 5: Configuring US English locale..."
-# Remove other locales
-sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen
-sed -i '/en_US.UTF-8/s/ ^/#/' /etc/locale.gen 2>/dev/null || true
-locale-gen en_US.UTF-8
+# Enable US locale
+sed -i 's/# en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen
+locale-gen
 
 # Set system locale
 echo "LANG=en_US.UTF-8" > /etc/locale.conf
-echo "LANGUAGE=en_US" >> /etc/locale.conf
 
 echo ""
 log_info "Step 6: Configuring US keyboard only..."
@@ -138,7 +140,9 @@ apt install -y \
     firefox-esr \
     network-manager \
     systemd \
-    dbus
+    dbus \
+    sudo \
+    locales
 
 echo ""
 log_info "Step 8: Configuring package removal (bloatware removal)..."
