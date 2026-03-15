@@ -1,0 +1,15 @@
+Package: ironclad-base
+Version: 0.1.0
+Section: metapackages
+Priority: optional
+Architecture: amd64
+Depends: 
+    firefox-esr,
+    nano,
+    gedit,
+    network-manager
+Description: IronClad OS Base Package
+ Base package for IronClad OS desktop system.
+ Installs minimal desktop environment with essential tools.
+ .
+ IronClad OS - Privacy-first decentralized operating system

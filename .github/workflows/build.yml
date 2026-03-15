@@ -1,0 +1,97 @@
+# IronClad OS - GitHub Actions CI/CD
+# Builds ISO automatically on commits
+
+name: Build IronClad OS
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Update package lists
+        run: |
+          sudo apt update
+      
+      - name: Install build dependencies
+        run: |
+          sudo apt install -y \
+            git \
+            curl \
+            wget \
+            gnupg2 \
+            apt-transport-https \
+            ca-certificates \
+            debootstrap \
+            grml-debootstrap \
+            squashfs-tools \
+            xorriso \
+            syslinux \
+            syslinux-utils \
+            dosfstools \
+            parted \
+            gdisk
+      
+      - name: Set up Kicksecure repository
+        run: |
+          wget -q https://www.kicksecure.com/keys/derivative.asc -O- | sudo apt-key add -
+          echo "deb https://deb.kicksecure.com/ bookworm main" | sudo tee /etc/apt/sources.list.d/kicksecure.list
+          sudo apt update
+      
+      - name: Build base system
+        run: |
+          # This is a simplified build - full implementation would use live-build or Derivative-Maker
+          echo "Building IronClad base system..."
+          echo "This step would run the full build process"
+          echo "For production: Use Derivative-Maker from https://github.com/derivative-maker/derivative-maker"
+      
+      - name: Create build manifest
+        run: |
+          echo "IronClad OS Build" > build-manifest.txt
+          echo "Version: ${{ github.ref_name }}" >> build-manifest.txt
+          echo "Build Date: $(date)" >> build-manifest.txt
+          echo "Commit: ${{ github.sha }}" >> build-manifest.txt
+      
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ironclad-build-artifacts
+          path: |
+            build-manifest.txt
+      
+      - name: Upload ISO (if built)
+        uses: actions/upload-artifact@v4
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        with:
+          name: ironclad-iso
+          path: |
+            iso/*.iso
+          retention-days: 30
+      
+      - name: Create Release
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: IronClad OS ${{ github.ref }}
+          draft: true
+          prerelease: false
+
+  # Placeholder for full ISO build
+  # Note: Building a full Debian-based ISO requires significant resources
+  # and is typically done on dedicated build machines, not GitHub Actions
+  # For production, consider using GitHub Actions to build packages only
+  # and use a separate system for ISO generation

@@ -1,0 +1,13 @@
+# IronClad OS APT Sources Configuration
+# For building IronClad from source
+
+# Debian Bookworm (Base)
+deb http://deb.debian.org/debian bookworm main contrib non-free
+deb http://deb.debian.org/debian bookworm-updates main contrib non-free
+deb http://deb.debian.org/debian-security bookworm-security main contrib non-free
+
+# Kicksecure Repository
+deb https://deb.kicksecure.com/ bookworm main
+
+# IronClad Repository (to be added after setup)
+# deb https://yourusername.github.io/ironclad-repo stable main
