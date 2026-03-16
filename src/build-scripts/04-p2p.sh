@@ -25,17 +25,31 @@ log_info "=========================================="
 echo ""
 
 log_info "Step 1: Installing Yggdrasil..."
-# Add Yggdrasil repository (Debian 12 method)
-curl -fsSL https://neilalexander.s3.eu-west-2.amazonaws.com/deb/keyring.gpg 2>/dev/null | gpg --dearmor -o /usr/share/keyrings/yggdrasil.gpg 2>/dev/null || log_warn "Could not add Yggdrasil key"
-echo "deb [signed-by=/usr/share/keyrings/yggdrasil.gpg] https://neilalexander.s3.eu-west-2.amazonaws.com/deb/ stable main" > /etc/apt/sources.list.d/yggdrasil.list
+# Remove broken repo if exists
+rm -f /etc/apt/sources.list.d/yggdrasil.list
 apt update 2>/dev/null || true
-apt install -y yggdrasil 2>/dev/null || log_warn "Yggdrasil not available - trying manual install"
+
+# Try to install from Debian repos first
+apt install -y yggdrasil 2>/dev/null || {
+    log_warn "Installing Yggdrasil manually..."
+    # Manual install from GitHub release
+    cd /tmp
+    wget -q https://github.com/yggdrasil-network/yggdrasil-go/releases/download/v0.5.4/yggdrasil-0.5.4-linux-arm64 -O yggdrasil
+    chmod +x yggdrasil
+    mv yggdrasil /usr/bin/
+    mkdir -p /etc/yggdrasil
+}
 
 log_info "Configuring Yggdrasil..."
 mkdir -p /etc/yggdrasil
 
-# Generate Yggdrasil config
-yggdrasil -genconf -allnodes > /etc/yggdrasil.conf
+# Generate Yggdrasil config (if yggdrasil command exists)
+if command -v yggdrasil &> /dev/null; then
+    yggdrasil -genconf -allnodes > /etc/yggdrasil.conf 2>/dev/null || true
+else
+    # Create basic config manually
+    echo "Peers: []" > /etc/yggdrasil.conf
+fi
 
 # Modify config for IronClad
 cat > /etc/yggdrasil.conf << 'EOF'
