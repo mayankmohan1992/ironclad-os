@@ -1,63 +1,104 @@
-# IronClad OS
+# 🛡️ IronClad OS
 
-A privacy-first, decentralized operating system built on Debian + Kicksecure.
+A privacy-first, decentralized operating system built on Debian + Kicksecure. Each IronClad machine functions as both a daily-use computer AND a server node in a P2P mesh network.
 
-## Overview
+![Status](https://img.shields.io/badge/Status-Alpha-yellow)
+![Base](https://img.shields.io/badge/Base-Debian%2012-blue)
+![Arch](https://img.shields.io/badge/Arch-ARM64%20%7C%20x86__64-green)
 
-IronClad OS is not just a desktop operating system - it's a complete decentralized internet platform. Each IronClad machine functions as both a daily-use computer AND a server node in a P2P mesh network.
+## ✨ Features
 
-## Key Features
+### 🔐 Privacy & Security
+- **Kicksecure Hardening** - Security-focused Debian
+- **Tor Integration** - System-wide Tor routing (optional)
+- **Per-App Tor Rules** - Choose which apps use Tor
+- **AppArmor** - Mandatory access control
 
-### Daily Use Desktop
-- LXQt desktop environment
-- LibreWolf browser (privacy-hardened Firefox fork)
-- Nano + Gedit text editors
-- Full Linux software compatibility via APT
+### 🌐 P2P Network
+- **Yggdrasil** - Encrypted IPv6 mesh VPN
+- **No Central Servers** - Peer-to-peer
+- **QR Code Peering** - Easy network joining
+- **Unique Identity** - Every user has a Node ID
 
-### Built-in Decentralized Services
-- **Email**: Citadel email server (SMTP/IMAP)
-- **Chat**: Matrix + Briar + XMPP
-- **File Sync**: Syncthing (P2P)
-- **Web Hosting**: Caddy web server for *.ironclad sites
+### 📧 Self-Hosted Services
+- **Email** - Postfix SMTP
+- **Chat** - XMPP (Prosody)
+- **File Sync** - Syncthing
+- **DNS** - Unbound local resolver
 
-### P2P Network
-- Yggdrasil mesh VPN for encrypted P2P connections
-- Torrent-style DHT peer discovery
-- Custom .ironclad TLD for decentralized websites
-- QR code peer addition for manual network joining
+### 🌐 Decentralized Websites
+- **.ironclad Domains** - Host your own website
+- **First-Come-First-Serve** - Unique usernames
+- **Seed Phrase Recovery** - BIP39-like 12-word backup
 
-### Security (Kicksecure Hardening)
-- AppArmor mandatory access control
-- Default-deny firewall
-- TPM encryption support
-- RAM wipe on shutdown
-- USBGuard
+### 🖥️ Desktop
+- **LXQt** - Lightweight Qt desktop
+- **Firefox ESR** - Privacy browser
+- **Full Linux** - Install any apt package
 
-## System Requirements
+## 🚀 Quick Access
 
-- **RAM**: 8 GB minimum (16 GB recommended for running all services)
-- **Storage**: 500 GB minimum
-- **Architecture**: x86_64 (legacy + modern hardware support)
+| Service | URL |
+|---------|-----|
+| Control Panel | http://192.168.64.3:8807 |
+| Syncthing | http://192.168.64.3:8384 |
+| Website | http://[205:4fc:d984:385:7dc1:fa2d:9c4e:5082]/ |
 
-## Documentation
+## 🔧 Commands
 
-See `/docs` for detailed documentation.
+```bash
+# Health check
+python3 /opt/ironclad/scripts/health-check.py
 
-## License
+# Tor management
+python3 /opt/ironclad/bin/tor-manager.py status
 
-This project is fully open source. Anyone can use, edit, and distribute without permission or attribution.
+# Website
+python3 /opt/ironclad/bin/ironclad-website.py status
+python3 /opt/ironclad/bin/ironclad-website.py claim mysite
+```
 
-See LICENSE file for details.
+## 📁 Structure
 
-## Building from Source
+```
+ironclad-os/
+├── src/
+│   ├── build-scripts/     # Install scripts
+│   ├── control-panel/    # Flask UI
+│   └── scripts/          # Utilities
+├── docs/                 # Docs
+├── AGENTS.md             # AI context
+├── TODO.md              # Features
+└── SUMMARY.md           # Progress
+```
 
-See docs/build-guide.md for build instructions.
+## 📋 Current Status
 
-## Support
+### Working ✅
+- Debian 12 + Kicksecure
+- LXQt Desktop
+- Yggdrasil P2P
+- Tor Proxy
+- nginx, Postfix, Prosody, Unbound
+- Syncthing
+- Web Control Panel
+- QR Code Peer System
+- .ironclad Websites
+- Seed Phrase Recovery
 
-- Website: ironclad-os.github.io (placeholder)
-- Community: (to be established)
+### In Progress 🚧
+- Per-app Tor rules
+- System-wide Tor
+- HTTPS for .ironclad
+
+## 🔗 Links
+
+- **GitHub**: https://github.com/mayankmohan1992/ironclad-os
+
+## 📄 License
+
+Open source - anyone can use, edit, distribute.
 
 ---
 
-**Philosophy**: Total privacy, zero reliance on big tech, own your data, own your services.
+**Philosophy**: Total privacy, zero reliance on big tech, own your data.
