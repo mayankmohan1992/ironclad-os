@@ -44,6 +44,21 @@ A privacy-first, decentralized operating system built on Debian + Kicksecure. Ea
 | Syncthing | http://192.168.64.3:8384 |
 | Website | http://[205:4fc:d984:385:7dc1:fa2d:9c4e:5082]/ |
 
+## 🔌 SSH Connection (For Developers)
+
+```bash
+# Install sshpass
+brew install sshpass
+
+# Connect to VM
+sshpass -p '9300' ssh -o StrictHostKeyChecking=no mayankmohan@192.168.64.3
+
+# With sudo
+sshpass -p '9300' ssh -o StrictHostKeyChecking=no -t mayankmohan@192.168.64.3 "echo '9300' | sudo -S command"
+```
+
+**VM**: IP 192.168.64.3 | User: mayankmohan | Pass: 9300
+
 ## 🔧 Commands
 
 ```bash

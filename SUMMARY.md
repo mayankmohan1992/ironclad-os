@@ -6,6 +6,28 @@ This document summarizes what was accomplished in the first development session.
 
 ---
 
+## SSH Connection (CRITICAL!)
+
+To connect to the VM:
+
+```bash
+# Install sshpass
+brew install sshpass
+
+# Connect
+sshpass -p '9300' ssh -o StrictHostKeyChecking=no mayankmohan@192.168.64.3
+
+# Run command with sudo
+sshpass -p '9300' ssh -o StrictHostKeyChecking=no -t mayankmohan@192.168.64.3 "echo '9300' | sudo -S command"
+```
+
+**VM Details:**
+- IP: 192.168.64.3
+- Username: mayankmohan
+- Password: 9300
+
+---
+
 ## Session Overview
 
 **Duration**: ~4 hours

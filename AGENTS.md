@@ -12,6 +12,71 @@ This file provides context for AI agents continuing development of IronClad OS.
 - P2P network for communication without central servers
 - Decentralized website hosting (.ironclad domains)
 
+---
+
+## SSH Connection Instructions (CRITICAL)
+
+This section is essential for connecting to the development VM.
+
+### SSH Access Method
+
+**Connection Details:**
+- **IP Address**: 192.168.64.3
+- **Port**: 22 (default SSH)
+- **Username**: mayankmohan
+- **Password**: 9300
+
+### Using sshpass (RECOMMENDED)
+
+The connection requires `sshpass` to automate password entry:
+
+```bash
+# Install sshpass on Mac
+brew install sshpass
+
+# Basic SSH connection
+sshpass -p '9300' ssh -o StrictHostKeyChecking=no mayankmohan@192.168.64.3 "command"
+
+# With sudo (required for system changes)
+sshpass -p '9300' ssh -o StrictHostKeyChecking=no -t mayankmohan@192.168.64.3 "echo '9300' | sudo -S command"
+```
+
+### SSH Command Examples
+
+```bash
+# Simple command
+sshpass -p '9300' ssh -o StrictHostKeyChecking=no mayankmohan@192.168.64.3 "hostname"
+
+# Run with sudo
+sshpass -p '9300' ssh -o StrictHostKeyChecking=no -t mayankmohan@192.168.64.3 "echo '9300' | sudo -S apt update"
+
+# Copy files to VM
+sshpass -p '9300' scp -o StrictHostKeyChecking=no file.txt mayankmohan@192.168.64.3:/tmp/
+
+# Copy files from VM
+sshpass -p '9300' scp -o StrictHostKeyChecking=no mayankmohan@192.168.64.3:/tmp/file.txt ./
+```
+
+### Common Issues & Fixes
+
+1. **"No route to host"**
+   - Wait a moment, VM may be restarting
+   - Check VM is running in UTM
+
+2. **"Permission denied"**
+   - Password may be wrong - verify: 9300
+   - SSH password auth may be disabled - enable it in VM:
+     ```bash
+     sudo sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
+     sudo systemctl restart ssh
+     ```
+
+3. **"sudo: a terminal is required"**
+   - Always use: `echo '9300' | sudo -S command`
+   - Or use: `ssh -t` for terminal allocation
+
+---
+
 ## Current Status
 
 ### Working Features
@@ -38,6 +103,8 @@ This file provides context for AI agents continuing development of IronClad OS.
 - Username: `mayank`
 - Website: `blog.mayank.ironclad`
 
+---
+
 ## Key Scripts & Locations
 
 | Script | Purpose |
@@ -47,6 +114,8 @@ This file provides context for AI agents continuing development of IronClad OS.
 | `/opt/ironclad/bin/ironclad-website.py` | Website hosting & username registry |
 | `/opt/ironclad/scripts/health-check.py` | System health check & auto-fix |
 | `/src/scripts/setup-panel.sh` | LXQt panel configuration |
+
+---
 
 ## Important Configuration
 
@@ -64,28 +133,37 @@ This file provides context for AI agents continuing development of IronClad OS.
 - User registry: /opt/ironclad/registry/users.json
 - Identity file: /opt/ironclad/registry/identity.json
 
+---
+
 ## Build Environment
 
 - **VM**: UTM on Mac M2 (Apple Silicon)
 - **OS**: Debian 12 ARM64 (Bookworm)
 - **Connection**: SSH on 192.168.64.3
-- **Password**: 9300 (for sudo)
+- **Password**: 9300
+
+---
 
 ## Common Commands
 
 ```bash
 # Health check
-python3 /opt/ironclad/scripts/health-check.py
+sshpass -p '9300' ssh -o StrictHostKeyChecking=no mayankmohan@192.168.64.3 "python3 /opt/ironclad/scripts/health-check.py"
 
 # Tor management
-python3 /opt/ironclad/bin/tor-manager.py status
-python3 /opt/ironclad/bin/tor-manager.py apps
+sshpass -p '9300' ssh -o StrictHostKeyChecking=no mayankmohan@192.168.64.3 "python3 /opt/ironclad/bin/tor-manager.py status"
 
 # Website management
-python3 /opt/ironclad/bin/ironclad-website.py status
-python3 /opt/ironclad/bin/ironclad-website.py claim <name>
-python3 /opt/ironclad/bin/ironclad-website.py seed
+sshpass -p '9300' ssh -o StrictHostKeyChecking=no mayankmohan@192.168.64.3 "python3 /opt/ironclad/bin/ironclad-website.py status"
+
+# Check service status
+sshpass -p '9300' ssh -o StrictHostKeyChecking=no mayankmohan@192.168.64.3 "systemctl status nginx"
+
+# Restart service
+sshpass -p '9300' ssh -o StrictHostKeyChecking=no -t mayankmohan@192.168.64.3 "echo '9300' | sudo -S systemctl restart nginx"
 ```
+
+---
 
 ## Issues to Address
 
@@ -94,6 +172,8 @@ python3 /opt/ironclad/bin/ironclad-website.py seed
 3. **Yggdrasil config**: Required moving to /etc/yggdrasil/yggdrasil.conf
 4. **Tor daemon**: Started manually via /usr/sbin/tor --runasdaemon 0
 5. **Unbound DNS**: Required fixing config syntax
+
+---
 
 ## Next Development Priorities
 
@@ -105,12 +185,16 @@ python3 /opt/ironclad/bin/ironclad-website.py seed
 6. Seed phrase backup/restore UI
 7. Create ISO/installer
 
+---
+
 ## Documentation Files
 
 - `README.md` - Project overview
 - `TODO.md` - Features to implement
 - `SUMMARY.md` - What's been done
 - `docs/` - Detailed documentation
+
+---
 
 ## GitHub Repository
 

@@ -5,6 +5,28 @@ Build a privacy-first, decentralized OS where users own their data, host their o
 
 ---
 
+## SSH Connection (CRITICAL - Read First!)
+
+To connect to the VM, use:
+
+```bash
+# Install sshpass first
+brew install sshpass
+
+# Basic connection
+sshpass -p '9300' ssh -o StrictHostKeyChecking=no mayankmohan@192.168.64.3 "command"
+
+# With sudo (for system changes)
+sshpass -p '9300' ssh -o StrictHostKeyChecking=no -t mayankmohan@192.168.64.3 "echo '9300' | sudo -S command"
+```
+
+**VM Details:**
+- IP: 192.168.64.3
+- Username: mayankmohan
+- Password: 9300
+
+---
+
 ## Completed Features ✅
 
 ### Phase 1: Foundation
