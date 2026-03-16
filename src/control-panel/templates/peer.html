@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peer Connection - IronClad</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: white;
+            text-decoration: none;
+            font-size: 1.1em;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        .card-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .qr-display {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .qr-code {
+            font-family: monospace;
+            white-space: pre;
+            font-size: 10px;
+            line-height: 1.2;
+            overflow-x: auto;
+        }
+        
+        .node-id {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 0.85em;
+            word-break: break-all;
+            margin-top: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1em;
+            font-family: monospace;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #38ef7d;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #11998e;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0d7a70;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .message {
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+        
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+        
+        .camera-section {
+            text-align: center;
+        }
+        
+        #video {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        #canvas {
+            display: none;
+        }
+        
+        .camera-btn {
+            background: #38ef7d;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .info-text {
+            color: #666;
+            font-size: 0.9em;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← Back to Control Panel</a>
+        
+        <header>
+            <h1>🔗 Peer Connection</h1>
+            <p class="subtitle">Connect with other IronClad users via P2P network</p>
+        </header>
+        
+        <div class="grid">
+            <!-- Your QR Code -->
+            <div class="card">
+                <div class="card-title">📱 Your QR Code</div>
+                <div class="qr-display">
+                    <div class="qr-code" id="qrCode">Loading...</div>
+                </div>
+                <div class="node-id">
+                    <strong>Node ID:</strong><br>
+                    <span id="nodeId">Loading...</span>
+                </div>
+                <p class="info-text">
+                    Share this QR code with other IronClad users to let them connect to you.
+                </p>
+            </div>
+            
+            <!-- Add Peer -->
+            <div class="card">
+                <div class="card-title">➕ Add Peer</div>
+                <div class="form-group">
+                    <label for="peerNodeId">Enter Peer Node ID:</label>
+                    <input type="text" id="peerNodeId" placeholder="Paste Node ID here...">
+                </div>
+                <button class="btn btn-primary" onclick="addPeer()">Add Peer</button>
+                <div class="message" id="addMessage"></div>
+                
+                <div style="margin-top: 40px; text-align: center;">
+                    <div class="card-title" style="font-size: 1.2em;">📷 Or Scan QR Code</div>
+                    <button class="btn camera-btn" onclick="startCamera()">Open Camera</button>
+                    <video id="video" autoplay></video>
+                    <canvas id="canvas"></canvas>
+                    <p class="info-text" id="scanResult"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        async function loadQRCode() {
+            try {
+                const response = await fetch('/api/peer/qr');
+                const data = await response.json();
+                
+                document.getElementById('qrCode').textContent = data.qr_code || 'Yggdrasil not running';
+                document.getElementById('nodeId').textContent = data.node_id || 'N/A';
+            } catch (error) {
+                console.error('Error loading QR:', error);
+                document.getElementById('qrCode').textContent = 'Error loading QR code';
+            }
+        }
+        
+        async function addPeer() {
+            const nodeId = document.getElementById('peerNodeId').value.trim();
+            const message = document.getElementById('addMessage');
+            
+            if (!nodeId) {
+                message.className = 'message error';
+                message.textContent = 'Please enter a Node ID';
+                return;
+            }
+            
+            message.className = 'message';
+            message.textContent = 'Adding peer...';
+            
+            try {
+                const response = await fetch('/api/peer/add', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({node_id: nodeId})
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    message.className = 'message success';
+                    message.textContent = data.message;
+                    document.getElementById('peerNodeId').value = '';
+                } else {
+                    message.className = 'message error';
+                    message.textContent = data.error || 'Failed to add peer';
+                }
+            } catch (error) {
+                message.className = 'message error';
+                message.textContent = 'Error: ' + error.message;
+            }
+        }
+        
+        let videoStream = null;
+        
+        async function startCamera() {
+            const video = document.getElementById('video');
+            
+            try {
+                videoStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment' } 
+                });
+                video.srcObject = videoStream;
+                video.style.display = 'block';
+                
+                // Note: Full QR scanning would require jsQR library
+                // For now, just show camera feed
+                document.getElementById('scanResult').textContent = 
+                    'Camera active. For production, integrate jsQR for scanning.';
+            } catch (error) {
+                document.getElementById('scanResult').textContent = 
+                    'Could not access camera: ' + error.message;
+            }
+        }
+        
+        // Load QR on page load
+        loadQRCode();
+        
+        // Refresh QR every 30 seconds
+        setInterval(loadQRCode, 30000);
+    </script>
+</body>
+</html>
