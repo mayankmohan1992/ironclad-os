@@ -59,8 +59,28 @@ def get_network_info():
     """Get network information"""
     info = {'yggdrasil': get_yggdrasil_info()}
     
-    # Check Tor status
-    tor_status = get_service_status('tor')
+    # Check Tor status - check if process is running or port is open
+    try:
+        result = subprocess.run(
+            ['pgrep', '-x', 'tor'],
+            capture_output=True, text=True, timeout=5
+        )
+        tor_running = result.returncode == 0
+    except:
+        tor_running = False
+    
+    # Also check if Tor port is listening
+    try:
+        result = subprocess.run(
+            ['ss', '-tlnp'],
+            capture_output=True, text=True, timeout=5
+        )
+        tor_port = ':9050' in result.stdout
+    except:
+        tor_port = False
+    
+    tor_status = tor_running or tor_port
+    
     info['tor'] = {
         'status': 'active' if tor_status else 'inactive',
         'enabled': tor_status
@@ -78,9 +98,19 @@ def api_status():
     """Get status of all services"""
     status = {}
     for service, info in SERVICES.items():
+        if service == 'syncthing':
+            # Check Syncthing differently - could be running as user
+            try:
+                result = subprocess.run(['pgrep', '-x', 'syncthing'], capture_output=True, timeout=5)
+                is_active = result.returncode == 0
+            except:
+                is_active = False
+        else:
+            is_active = get_service_status(service)
+        
         status[service] = {
             'name': info['name'],
-            'active': get_service_status(service),
+            'active': is_active,
             'port': info['port']
         }
     
@@ -109,9 +139,11 @@ def api_tor_toggle():
     enable = data.get('enable', True)
     
     if enable:
-        subprocess.run(['systemctl', 'start', 'tor'], timeout=30)
+        # Start Tor daemon directly
+        subprocess.run(['/usr/sbin/tor', '--runasdaemon', '0'], timeout=30)
     else:
-        subprocess.run(['systemctl', 'stop', 'tor'], timeout=30)
+        # Kill Tor process
+        subprocess.run(['pkill', '-x', 'tor'], timeout=30)
     
     return jsonify({'success': True, 'enabled': enable})
 
